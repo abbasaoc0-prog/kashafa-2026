@@ -2,204 +2,306 @@
 <html lang="ar" dir="rtl">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>مسابقة الكشافة - الراهي</title>
-    <link href="https://fonts.googleapis.com/css2?family=Amiri:wght@700&family=Reem+Kufi:wght@500&display=swap" rel="stylesheet">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>كشافة البنيان المرصوص | ذي قار</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-firestore-compat.js"></script>
-
+    <link href="https://fonts.googleapis.com/css2?family=Amiri:wght@700&family=Cairo:wght@400;700;900&display=swap" rel="stylesheet">
+    <script src="https://www.gstatic.com/firebasejs/9.1.3/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.1.3/firebase-firestore-compat.js"></script>
     <style>
-        :root { --gold: #D4AF37; --dark: #1a1a1a; }
-        body { font-family: 'Reem Kufi', sans-serif; background: var(--dark); color: white; overflow-x: hidden; }
-        .gold-text { color: var(--gold); font-family: 'Amiri', serif; }
-        .gold-border { border: 2px solid var(--gold); }
+        :root { --gold: #d4af37; --azure: #001f3f; --off-white: #fdfdfb; --correct: #2ecc71; --wrong: #e74c3c; }
+        body { background: var(--off-white); font-family: 'Cairo', sans-serif; margin:0; overflow-x: hidden; }
         
-        /* تحسينات الموبايل والشهادة */
-        header h1 { font-size: 1.8rem !important; }
-        .nav-square { border-radius: 20px; transition: 0.3s; cursor: pointer; background: #262626; padding: 15px; }
-        .nav-square:hover { transform: scale(1.05); background: #333; }
-        
-        #cert-box { 
-            background: #fff; color: #000; padding: 20px; border: 10px double var(--gold);
-            width: 95%; max-width: 500px; margin: auto; text-align: center; display: none;
-        }
-        #cert-box h3 { font-family: 'Amiri', serif; color: #8b6b23; font-size: 2.5rem; }
+        /* بوابة الدخول والتبخر */
+        #gate-keeper { position: fixed; inset: 0; z-index: 99999; background: radial-gradient(circle, #002244 0%, #000000 100%); display: flex; justify-content: center; align-items: center; transition: 1.5s all ease-in-out; }
+        .fade-exit { opacity: 0 !important; visibility: hidden; filter: blur(30px); transform: scale(1.1); }
+        .name-tag { position: absolute; color: var(--gold); font-family: 'Amiri', serif; font-size: 1.2rem; font-weight: 900; text-shadow: 0 0 10px gold; white-space: nowrap; }
 
+        /* الانتقالات بين الأقسام */
         .full-page { 
-            position: fixed; top: 0; left: 0; width: 100%; height: 100%; 
-            background: var(--dark); z-index: 50; display: none; flex-direction: column; overflow-y: auto;
+            position: fixed; inset: 0; background: var(--off-white); z-index: 500; 
+            display: none; flex-direction: column; overflow-y: auto; padding: 25px;
+            animation: slideUp 0.6s cubic-bezier(0.4, 0, 0.2, 1);
         }
-        .hidden { display: none; }
-        .opt-btn { width: 100%; padding: 12px; margin: 5px 0; border: 1px solid var(--gold); border-radius: 10px; text-align: right; transition: 0.3s; }
-        .opt-btn:hover { background: var(--gold); color: black; }
+        @keyframes slideUp { from { transform: translateY(100%); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+
+        /* العناوين الذهبية */
+        .gold-title { color: var(--gold) !important; font-family: 'Amiri', serif; font-weight: 900; }
+        
+        /* زر انسحاب ملموم */
+        .btn-exit-mini { background: #c0392b; color: white; padding: 5px 15px; border-radius: 8px; font-size: 0.8rem; font-weight: 900; cursor: pointer; border: none; }
+
+        /* زر بسم الله فخم */
+        .bismillah-btn-special {
+            background: linear-gradient(145deg, #d4af37, #b8860b);
+            color: white; padding: 15px 60px; border-radius: 50px;
+            font-size: 2.5rem; font-family: 'Amiri', serif; font-weight: 900;
+            border: 4px solid #fff; box-shadow: 0 10px 25px rgba(212,175,55,0.4);
+            cursor: pointer; transition: 0.4s;
+        }
+
+        /* المسابقة والتفاعلات */
+        .opt-btn { width: 100%; padding: 18px; border: 2px solid var(--gold); border-radius: 15px; font-weight: 900; background: white; transition: 0.3s; margin-bottom: 10px; font-size: 1.2rem; outline: none; }
+        .opt-correct { background: var(--correct) !important; color: white !important; border-color: #27ae60 !important; }
+        .opt-wrong { background: var(--wrong) !important; color: white !important; border-color: #c0392b !important; }
+        .fade-question { animation: qFade 0.5s ease; }
+        @keyframes qFade { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        .q-counter { background: var(--gold); color: white; padding: 4px 15px; border-radius: 20px; font-size: 0.9rem; margin-bottom: 15px; display: inline-block; font-weight: bold; }
+
+        /* زر النشر المميز */
+        .btn-publish {
+            background: linear-gradient(to left, #1e3a8a, #3b82f6);
+            color: white; padding: 15px; border-radius: 15px;
+            font-weight: 900; box-shadow: 0 4px 15px rgba(59, 130, 246, 0.4);
+            border: 2px solid #fff; cursor: pointer; transition: 0.3s; width: 100%; font-size: 1.2rem;
+        }
+
+        /* الشهادة المعتبرة */
+        #cert-box { background: white; border: 15px double var(--gold); padding: 50px; text-align: center; position: relative; box-shadow: 0 0 60px rgba(0,0,0,0.1); }
+        #cert-box::before { content: ""; position: absolute; inset: 5px; border: 2px solid var(--gold); pointer-events: none; }
+
+        .nav-square { aspect-ratio: 1/1; background: white; border: 4px solid var(--gold); border-radius: 40px; display: flex; flex-direction: column; align-items: center; justify-content: center; cursor: pointer; transition: 0.4s; }
+        .nav-square:hover { background: var(--azure); color: white; transform: scale(1.03); }
     </style>
 </head>
 <body>
 
-    <div id="home" class="min-h-screen p-4 flex flex-col items-center">
-        <header class="text-center my-8">
-            <h1 class="gold-text text-4xl mb-2">بسم الله الرحمن الرحيم</h1>
-            <h2 class="text-xl opacity-80">المسابقة الكشفية السنوية</h2>
+    <div id="gate-keeper">
+        <div class="relative w-[600px] h-[600px] flex justify-center items-center">
+            <div id="names-ring"></div>
+            <div class="absolute w-56 h-56 rounded-full bg-white border-8 border-gold overflow-hidden cursor-pointer z-20" onclick="enterSite()">
+                <div class="h-full flex flex-col">
+                    <div class="flex-1 bg-[#ce1126]"></div>
+                    <div class="flex-1 flex items-center justify-center text-[#007a3d] font-black text-2xl font-['Amiri']">الله أكبر</div>
+                    <div class="flex-1 bg-black"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="main-ui" class="hidden">
+        <header class="py-10 text-center bg-white border-b-8 border-gold">
+            <h1 class="gold-title text-5xl md:text-6xl mb-2">مكتب السيد الشهيد محمد الصدر (قدس سره)</h1>
+            <h2 class="gold-title text-3xl md:text-4xl">كشافة البنيان المرصوص | ذي قار</h2>
         </header>
 
-        <div class="grid grid-cols-2 gap-4 w-full max-w-md">
-            <div onclick="showSection('quiz-init')" class="nav-square flex flex-col items-center">
-                <span class="text-4xl mb-2">🏆</span>
-                <h3>ابدأ الاختبار</h3>
-            </div>
-            <div onclick="showSection('gallery-view')" class="nav-square flex flex-col items-center">
-                <span class="text-4xl mb-2">🖼️</span>
-                <h3>معرض الصور</h3>
-            </div>
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-8 p-10 max-w-6xl mx-auto">
+            <div class="nav-square" onclick="showSection('gallery-page')"><span class="text-7xl mb-4">🖼️</span><h3 class="text-2xl font-black">المعرض الكشفي</h3></div>
+            <div class="nav-square" onclick="showSection('quotes-page')"><span class="text-7xl mb-4">📜</span><h3 class="text-2xl font-black">أقوال الإمام علي (ع)</h3></div>
+            <div class="nav-square" onclick="showSection('quiz-page')"><span class="text-7xl mb-4">📝</span><h3 class="text-2xl font-black">مسابقة وليد الكعبة</h3></div>
         </div>
 
-        <div id="quote-box" class="mt-12 p-6 gold-border rounded-xl text-center w-full max-w-md italic opacity-90">
-            </div>
-    </div>
-
-    <div id="gallery-view" class="full-page p-4">
-        <div class="flex justify-between items-center mb-6">
-            <h2 class="gold-text text-2xl">المعرض الكشفي</h2>
-            <button onclick="hideSection('gallery-view')" class="text-red-500">إغلاق</button>
-        </div>
-        <div class="grid grid-cols-2 gap-2" id="gallery-grid">
-            </div>
-        <button onclick="checkAdmin()" class="mt-8 opacity-20 text-xs text-center w-full">ADMIN</button>
-    </div>
-
-    <div id="quiz-init" class="full-page p-6 flex-col justify-center items-center">
-        <h2 class="gold-text text-3xl mb-6">سجل بياناتك</h2>
-        <input type="text" id="p-name" placeholder="الاسم الرباعي واللقب" class="w-full p-4 rounded bg-gray-800 border border-gold mb-4 text-center">
-        <button onclick="startChallenge()" class="bg-yellow-600 text-white px-10 py-3 rounded-full text-xl font-bold">باسم الله نبدأ</button>
-        <button onclick="hideSection('quiz-init')" class="mt-4 text-gray-400">رجوع</button>
-    </div>
-
-    <div id="quiz-main" class="full-page p-6 hidden">
-        <div id="q-container" class="w-full max-w-md mx-auto">
-            <div class="mb-4 text-gold" id="q-count">السؤال 1</div>
-            <h3 id="q-text" class="text-2xl mb-8 leading-relaxed">جاري التحميل...</h3>
-            <div id="options" class="flex flex-col"></div>
+        <div class="text-center py-20 px-6 border-t-4 border-gold mt-10 bg-white">
+            <h3 class="gold-title text-4xl font-black italic">نبارك لكم ولادة أمير المؤمنين ووصي رسول رب العالمين الامام علي  (عليه السلام)</h3>
         </div>
     </div>
 
-    <div id="cert-view" class="full-page p-4 justify-center items-center">
-        <div id="cert-box">
-            <p>تشهد الأمانة العامة للمسابقة بأن البطل:</p>
-            <h3 id="cert-name">الراهي</h3>
-            <p>قد اجتاز الاختبار بنجاح بمعدل</p>
-            <h1 class="text-5xl font-bold my-4">100%</h1>
-            <p class="text-sm opacity-60">تاريخ الإصدار: 2026</p>
+    <div id="quiz-page" class="full-page">
+        <div class="text-right mb-4"><button onclick="hideSection('quiz-page')" class="btn-exit-mini">✖ انسحاب</button></div>
+        <div id="quiz-init" class="text-center">
+            <h2 class="gold-title text-4xl mb-10">مسابقة وليد الكعبة</h2>
+            <div class="max-w-lg mx-auto bg-white p-10 rounded-[40px] border-4 border-gold shadow-2xl">
+                <input type="text" id="p-name" placeholder="الاسم الرباعي واللقب" class="w-full p-4 border-2 border-gold rounded-2xl mb-12 text-center text-xl font-black outline-none focus:ring-4 ring-gold/20">
+                <button onclick="startChallenge()" class="bismillah-btn-special">بسم الله</button>
+            </div>
         </div>
-        <button onclick="location.reload()" class="mt-6 bg-gold text-black px-6 py-2 rounded">خروج</button>
+
+        <div id="quiz-main" class="hidden max-w-2xl mx-auto bg-white p-10 rounded-3xl border-4 border-gold text-center shadow-2xl">
+            <div class="q-counter">سؤال <span id="q-num">1</span> من <span id="q-total">0</span></div>
+            <h3 id="q-display" class="text-3xl font-black mb-10 text-azure fade-question"></h3>
+            <div id="opts-display"></div>
+        </div>
+
+        <div id="cert-box" style="background: white; color: black; padding: 20px; border: 8px double #D4AF37; width: 95%; max-width: 500px; margin: auto; text-align: center; direction: rtl;">
+    <h2 style="font-family: 'Amiri', serif; color: #8b6b23; font-size: 1.5rem; margin-bottom: 5px;">مكتب السيد الشهيد الصدر (قدس سره)</h2>
+    <p style="font-size: 1rem; margin-bottom: 15px; border-bottom: 1px dashed #ccc; padding-bottom: 5px;">إدارة العمل الكشفي</p>
+    
+    <p style="font-size: 1.1rem;">تتقدم إدارة الكشافة بالشكر والتقدير للكشاف المشارك:</p>
+    <h3 id="cert-name" style="font-family: 'Amiri', serif; color: #D4AF37; font-size: 2.8rem; margin: 15px 0;"></h3>
+    
+    <p style="font-size: 1.1rem; line-height: 1.6;">لاجتيازه المسابقة الكشفية بنجاح باهر وبدرجة كاملة، متمنين له دوام التوفيق في خدمة المذهب والمجتمع.</p>
+    
+    <div style="margin-top: 25px; display: flex; justify-content: space-around; font-weight: bold; color: #555;">
+        /* تنسيقات خاصة للموبايل فقط */
+@media (max-width: 600px) {
+    header h1 { font-size: 1.5rem !important; } /* تصغير "بسم الله" */
+    header h2 { font-size: 1.1rem !important; } /* تصغير العنوان التحتها */
+    
+    .nav-square { 
+        padding: 10px !important; 
+        height: 120px !important; /* تقليل ارتفاع المربعات */
+    }
+    .nav-square span { font-size: 2rem !important; } /* تصغير الأيقونة (الكأس والمعرض) */
+    .nav-square h3 { font-size: 0.9rem !important; } /* تصغير نص المربعات */
+
+    #quote-box { 
+        font-size: 0.9rem !important; 
+        margin-top: 20px !important;
+        padding: 10px !important;
+    }
+}
+        <span>إدارة الكشافة</span>
+        <span>ختم المسابقة</span>
+    </div>
+</div>
+            <button onclick="location.reload()" class="mt-8 text-xs text-gray-400"></button>
+        </div>
+    </div>
+
+    <div id="gallery-page" class="full-page">
+        <div class="flex justify-between mb-6">
+            <button onclick="hideSection('gallery-page')" class="btn-exit-mini" style="background:var(--gold)">🔙 رجوع</button>
+            <button onclick="adminLogin()" class="text-gray-300 text-[10px]">ADMIN</button>
+        </div>
+        <div id="admin-panel" class="hidden bg-yellow-50 p-6 rounded-2xl border-4 border-dashed border-gold mb-10">
+            <h3 class="font-black text-2xl mb-4">لوحة الإدارة 👑</h3>
+            <input type="text" id="q-in" placeholder="نص السؤال" class="w-full p-3 mb-2 border rounded-xl">
+            <div class="grid grid-cols-3 gap-2 mb-4">
+                <input type="text" id="o1" placeholder="خيار 1" class="p-3 border rounded-xl">
+                <input type="text" id="o2" placeholder="خيار 2" class="p-3 border rounded-xl">
+                <input type="text" id="o3" placeholder="خيار 3" class="p-3 border rounded-xl">
+            </div>
+            <select id="c-in" class="w-full p-3 mb-4 border rounded-xl font-bold">
+                <option value="0">الخيار الأول صح</option>
+                <option value="1">الخيار الثاني صح</option>
+                <option value="2">الخيار الثالث صح</option>
+            </select>
+            <button onclick="addQ()" class="btn-publish">نشر السؤال الآن</button>
+            <div id="admin-q-list" class="mt-8 space-y-2 max-h-60 overflow-y-auto p-4 bg-white rounded-xl shadow-inner"></div>
+        </div>
+        <div id="gal-grid" class="columns-2 md:columns-4 gap-4 px-2"></div>
+    </div>
+
+    <div id="quotes-page" class="full-page">
+        <button onclick="hideSection('quotes-page')" class="btn-exit-mini mb-6 w-24" style="background:var(--gold)">🔙 رجوع</button>
+        <div id="quotes-list" class="max-w-4xl mx-auto space-y-4"></div>
     </div>
 
     <script>
-        // --- الفايربيز (بدل المعلومات بالخاصة بيك) ---
-        const firebaseConfig = {
-            apiKey: "AIzaSy...",
-            authDomain: "your-app.firebaseapp.com",
-            projectId: "your-app",
-            storageBucket: "your-app.appspot.com",
-            messagingSenderId: "...",
-            appId: "..."
-        };
+        const firebaseConfig = { apiKey: "AIzaSyCajxAScOpEbQShZ-8JNcqmrf6gFz8ncnE", authDomain: "mall-bet-madmoom.firebaseapp.com", projectId: "mall-bet-madmoom", appId: "1:922712350704:web:9751ad2419f915a9a74735" };
         firebase.initializeApp(firebaseConfig);
         const db = firebase.firestore();
 
-        // --- أقوال الإمام علي (ع) ---
-        const hq = [
-            "النَّاسُ صِنْفَانِ: إِمَّا أَخٌ لَكَ فِي الدِّينِ، أَوْ نَظِيرٌ لَكَ فِي الْخَلْقِ.",
-            "مَا ضَاعَ امْرُؤٌ عَرَفَ قَدْرَهُ.",
-            "الْعِلْمُ نَهْرٌ، وَالْحِكْمَةُ بَحْرٌ.",
-            "أَكْرِمْ ضَيْفَكَ وَإِنْ كَانَ حَقِيراً.",
-            "قِيمَةُ كُلِّ امْرِئٍ مَا يُحْسِنُهُ.",
-            "الْعِلْمُ خَيْرٌ مِنَ الْمَالِ.",
-            "لا غِنَى كَالْعَقْلِ، وَلا فَقْرَ كَالْجَهْلِ.",
-            "إِذَا تَمَّ الْعَقْلُ نَقَصَ الْكَلامُ."
-        ];
-
-        // --- وظائف التنقل ومنع زر الرجوع ---
-        function showSection(id) {
-            document.getElementById(id).style.display = 'flex';
-            history.pushState({ section: id }, "");
+        function enterSite() { 
+            document.getElementById('gate-keeper').classList.add('fade-exit'); 
+            setTimeout(() => { 
+                document.getElementById('gate-keeper').style.display='none'; 
+                document.getElementById('main-ui').classList.remove('hidden'); 
+                loadGal(); loadQuotes(); fetchQs(); 
+            }, 1200); 
         }
-        function hideSection(id) {
-            document.getElementById(id).style.display = 'none';
-        }
-        window.onpopstate = function() {
-            document.querySelectorAll('.full-page').forEach(p => p.style.display = 'none');
-        };
 
-        // --- إدارة المسابقة ---
-        let questions = [];
-        let curIdx = 0;
-        let rawN = "";
+        const names = ["محمد المصطفى", "علي المرتضى", "فاطمة الزهراء", "الحسن المجتبى", "الحسين الشهيد", "علي السجاد", "محمد الباقر", "جعفر الصادق", "موسى الكاظم", "علي الرضا", "محمد الجواد", "علي الهادي", "الحسن العسكري", "المهدي المنتظر"];
+        const ring = document.getElementById('names-ring');
+        names.forEach((n, i) => {
+            const angle = (i * 360 / 14) * (Math.PI / 180) - (Math.PI / 2);
+            const tag = document.createElement('div'); tag.className = 'name-tag';
+            tag.style.left = `calc(50% + ${Math.cos(angle)*230}px)`; tag.style.top = `calc(50% + ${Math.sin(angle)*230}px)`;
+            tag.style.transform = 'translate(-50%, -50%)'; tag.innerText = n; ring.appendChild(tag);
+        });
 
-        async function startChallenge() {
+        let questions = [], cur = 0, score = 0, rawN = "";
+        async function fetchQs() { const snap = await db.collection("final_v9").orderBy("date").get(); questions = snap.docs.map(doc => doc.data()); }
+
+        function startChallenge() {
             rawN = document.getElementById('p-name').value;
-            if(rawN.trim().split(" ").length < 3) return alert("يرجى كتابة الاسم الرباعي واللقب!");
-            
-            const snap = await db.collection('questions').get();
-            questions = snap.docs.map(doc => doc.data());
-            
-            if(questions.length === 0) return alert("لا توجد أسئلة حالياً.");
-            
-            document.getElementById('quiz-init').style.display = 'none';
+            if(rawN.trim().split(" ").length < 3) return alert("الاسم الرباعي واللقب!");
+            document.getElementById('quiz-init').classList.add('hidden'); 
             document.getElementById('quiz-main').classList.remove('hidden');
-            document.getElementById('quiz-main').style.display = 'flex';
             showQ();
         }
 
         function showQ() {
-            const q = questions[curIdx];
-            document.getElementById('q-count').innerText = `سؤال ${curIdx + 1} من ${questions.length}`;
-            document.getElementById('q-text').innerText = q.title;
-            const optDiv = document.getElementById('options');
-            optDiv.innerHTML = "";
-            q.options.forEach(opt => {
-                const b = document.createElement('button');
-                b.className = "opt-btn";
-                b.innerText = opt;
-                b.onclick = () => nextQ(opt === q.correct);
-                optDiv.appendChild(b);
+            const q = questions[cur];
+            document.getElementById('q-num').innerText = cur + 1;
+            document.getElementById('q-total').innerText = questions.length;
+            document.getElementById('q-display').innerText = q.q;
+            const b = document.getElementById('opts-display'); b.innerHTML = "";
+            
+            // انميشن للسؤال
+            document.getElementById('q-display').classList.remove('fade-question');
+            void document.getElementById('q-display').offsetWidth;
+            document.getElementById('q-display').classList.add('fade-question');
+
+            q.options.forEach((o, i) => {
+                const btn = document.createElement('button'); btn.className = "opt-btn fade-question"; btn.innerText = o;
+                btn.onclick = () => {
+                    const all = b.querySelectorAll('button');
+                    if(i === q.correct) { btn.classList.add('opt-correct'); score++; }
+                    else { btn.classList.add('opt-wrong'); all[q.correct].classList.add('opt-correct'); }
+                    all.forEach(bt => bt.disabled = true);
+                    setTimeout(() => { cur++; if(cur < questions.length) showQ(); else finish(); }, 1200);
+                };
+                b.appendChild(btn);
             });
         }
 
-        function nextQ(isCorrect) {
-            if(!isCorrect) return alert("إجابة خاطئة! حاول مرة أخرى.");
-            curIdx++;
-            if(curIdx < questions.length) showQ();
-            else showCert();
+        function finish() {
+            document.getElementById('quiz-main').classList.add('hidden');
+            const parts = rawN.trim().split(/\s+/);
+            const dispName = parts.length > 1 ? parts[0] + " " + parts[parts.length - 1] : parts[0];
+            document.getElementById('final-name').innerText = dispName;
+            document.getElementById('final-grade').innerText = Math.round((score/questions.length)*100);
+            document.getElementById('cert-box').classList.remove('hidden');
         }
 
-        function showCert() {
-            document.getElementById('quiz-main').style.display = 'none';
-            document.getElementById('cert-view').style.display = 'flex';
-            document.getElementById('cert-box').style.display = 'block';
-            const parts = rawN.split(" ");
-            document.getElementById('cert-name').innerText = parts[0] + " " + parts[parts.length-1];
+        function adminLogin() { if(prompt("رمز الإدارة:") === "asd.alrahe2001") { document.getElementById('admin-panel').classList.toggle('hidden'); renderAList(); } }
+        async function addQ() {
+            const q = document.getElementById('q-in').value, opts = [document.getElementById('o1').value, document.getElementById('o2').value, document.getElementById('o3').value], correct = parseInt(document.getElementById('c-in').value);
+            if(q && opts[2]) { await db.collection("final_v9").add({ q, options: opts, correct, date: new Date() }); renderAList(); fetchQs(); }
         }
-
-        // --- المعرض والأقوال ---
-        window.onload = () => {
-            document.getElementById('quote-box').innerText = hq[Math.floor(Math.random()*hq.length)];
-            const grid = document.getElementById('gallery-grid');
-            for(let i=1; i<=15; i++) {
-                grid.innerHTML += `<img src="gallery/${i}.jpg" class="w-full h-32 object-cover rounded shadow-lg" onerror="this.style.display='none'">`;
-            }
-        };
-
-        function checkAdmin() {
-            const pw = prompt("أدخل رمز الإدارة:");
-            if(pw === "asd.alrahe2001") {
-                const t = prompt("السؤال:");
-                const o = prompt("الخيارات (افصل بينها بفارزة):").split(",");
-                const c = prompt("الإجابة الصحيحة (نفس النص):");
-                db.collection('questions').add({ title: t, options: o, correct: c });
-                alert("تمت الإضافة بنجاح!");
-            }
+        async function renderAList() {
+            const snap = await db.collection("final_v9").orderBy("date").get();
+            const l = document.getElementById('admin-q-list'); l.innerHTML = "";
+            snap.forEach(doc => l.innerHTML += `<div class='flex justify-between p-2 border-b text-sm'><span>${doc.data().q}</span><button onclick="delQ('${doc.id}')" class='text-red-500'>حذف</button></div>`);
         }
+        async function delQ(id) { await db.collection("final_v9").doc(id).delete(); renderAList(); }
+
+        function loadQuotes() {const hq = [
+    "النَّاسُ صِنْفَانِ: إِمَّا أَخٌ لَكَ فِي الدِّينِ، أَوْ نَظِيرٌ لَكَ فِي الْخَلْقِ.",
+    "مَا ضَاعَ امْرُؤٌ عَرَفَ قَدْرَهُ.",
+    "الْعِلْمُ نَهْرٌ، وَالْحِكْمَةُ بَحْرٌ.",
+    "أَكْرِمْ ضَيْفَكَ وَإِنْ كَانَ حَقِيراً، وَقُمْ عَنْ مَجْلِسِكَ لأَبِيكَ وَمُعَلِّمِكَ وَإِنْ كُنْتَ أَمِيراً.",
+    "قِيمَةُ كُلِّ امْرِئٍ مَا يُحْسِنُهُ.",
+    "الْعِلْمُ خَيْرٌ مِنَ الْمَالِ، الْعِلْمُ يَحْرُسُكَ وَأَنْتَ تَحْرُسُ الْمَالَ.",
+    "عَجِبْتُ لِمَنْ يَقْنَطُ وَمَعَهُ الاسْتِغْفَارُ.",
+    "يَوْمُ الْمَظْلُومِ عَلَى الظَّالِمِ أَشَدُّ مِنْ يَوْمِ الظَّالِمِ عَلَى الْمَظْلُومِ.",
+    "بِالْعَدْلِ تَصْلُحُ الرَّعِيَّةُ.",
+    "مَنْ كَسَاهُ الْحَيَاءُ ثَوْبَهُ لَمْ يَرَ النَّاسُ عَيْبَهُ.",
+    "لا طَاعَةَ لِمَخْلُوقٍ فِي مَعْصِيَةِ الْخَالِقِ.",
+    "خَالِطُوا النَّاسَ مُخَالَطَةً إِنْ مِتُّمْ مَعَهَا بَكَوْا عَلَيْكُمْ، وَإِنْ عِشْتُمْ حَنُّوا إِلَيْكُمْ.",
+    "أَعْجَزُ النَّاسِ مَنْ عَجَزَ عَنِ اكْتِسَابِ الإِخْوَانِ.",
+    "إِذَا أَقْبَلَتِ الدُّنْيَا عَلَى أَحَدٍ أَعَارَتْهُ مَحَاسِنَ غَيْرِهِ، وَإِذَا أَدْبَرَتْ عَنْهُ سَلَبَتْهُ مَحَاسِنَ نَفْسِهِ.",
+    "الصَّبْرُ صَبْرَانِ: صَبْرٌ عَلَى مَا تَكْرَهُ، وَصَبْرٌ عَمَّا تُحِبُّ.",
+    "أَزْرَى بِنَفْسِهِ مَنِ اسْتَشْعَرَ الطَّمَعَ.",
+    "لِسَانُ الْعَاقِلِ وَرَاءَ قَلْبِهِ، وَقَلْبُ الأَحْمَقِ وَرَاءَ لِسَانِهِ.",
+    "ثَمَرَةُ التَّفْرِيطِ النَّدَامَةُ، وَثَمَرَةُ الْحَزْمِ السَّلامَةُ.",
+    "لا غِنَى كَالْعَقْلِ، وَلا فَقْرَ كَالْجَهْلِ.",
+    "الْبُخْلُ عَارٌ، وَالْجُبْنُ مَنْقَصَةٌ.",
+    "أَوْلَى النَّاسِ بِالْعَفْوِ أَقْدَرُهُمْ عَلَى الْعُقُوبَةِ.",
+    "مَنْ جَرَى فِي عِنَانِ أَمَلِهِ عَثَرَ بِأَجَلِهِ.",
+    "إِذَا تَمَّ الْعَقْلُ نَقَصَ الْكَلامُ.",
+    "لا تَسْتَوْحِشُوا فِي طَرِيقِ الْهُدَى لِقِلَّةِ أَهْلِهِ.",
+    "كُنْ فِي الْفِتْنَةِ كَابْنِ اللَّبُونِ، لا ظَهْرٌ فَيُرْكَبَ، وَلا ضَرْعٌ فَيُحْلَبَ."
+];
+            document.getElementById('quotes-list').innerHTML = hq.map(q => `<div class="p-6 bg-white border-r-8 border-gold shadow-md text-2xl font-['Amiri']">${q}</div>`).join('');
+        }
+        function loadGal() { const g = document.getElementById('gal-grid'); for(let i=1; i<=20; i++) g.innerHTML += `<img src="gallery/${i}.jpg" onerror="this.style.display='none'" class="w-full rounded-2xl mb-4 border-2 border-gold shadow">`; }
+        function showSection(id) { document.getElementById(id).style.display = 'flex'; }
+        function hideSection(id) { document.getElementById(id).style.display = 'none'; }
+    // عند فتح أي قسم (معرض أو اختبار)
+function showSection(id) {
+    document.getElementById(id).style.display = 'flex';
+    // دفع حالة جديدة للسجل "وهمية" حتى من يدوس رجوع يرجع للرئيسية مو يطلع من الرابط
+    history.pushState({ section: id }, "");
+}
+
+// الاستماع لزر الرجوع الخاص بالموبايل
+window.onpopstate = function(event) {
+    // إخفاء كل الأقسام المفتوحة والرجوع للواجهة الرئيسية
+    const allPages = document.querySelectorAll('.full-page');
+    allPages.forEach(p => p.style.display = 'none');
+};
     </script>
 </body>
 </html>
