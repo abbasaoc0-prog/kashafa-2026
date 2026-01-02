@@ -115,10 +115,23 @@
         <div id="archive-grid" class="columns-2 gap-2"></div>
     </div>
 
-    <div id="quotes-page" class="full-page">
-        <button onclick="hideSection('quotes-page')" class="bg-gold text-white px-6 py-2 rounded-lg mb-4">🔙 رجوع</button>
-        <div id="quotes-list" class="space-y-3"></div>
+   <div id="quotes-page" class="full-page">
+    <button onclick="hideSection('quotes-page')" class="bg-gold text-white px-6 py-2 rounded-lg mb-6 w-24 shadow-md">🔙 رجوع</button>
+    
+    <div class="flex-1 flex flex-col items-center justify-center">
+        <div id="quote-card" class="w-full max-w-sm bg-white p-8 rounded-3xl border-t-8 border-gold shadow-xl text-center transition-all duration-500 min-h-[250px] flex flex-col justify-center">
+            <span class="text-4xl text-gold mb-4 opacity-50 font-serif">"</span>
+            <p id="quote-text" class="text-xl font-bold text-azure leading-relaxed font-['Amiri']"></p>
+            <span class="text-4xl text-gold mt-4 opacity-50 font-serif">"</span>
+        </div>
+
+        <div class="flex gap-10 mt-10">
+            <button onclick="prevQuote()" class="bg-white border-2 border-gold text-gold w-14 h-14 rounded-full flex items-center justify-center shadow-lg active:scale-90 transition-all">◀</button>
+            <div id="quote-counter" class="flex items-center font-bold text-gold">1 / 25</div>
+            <button onclick="nextQuote()" class="bg-white border-2 border-gold text-gold w-14 h-14 rounded-full flex items-center justify-center shadow-lg active:scale-90 transition-all">▶</button>
+        </div>
     </div>
+</div>
 
     <script>
         const firebaseConfig = { apiKey: "AIzaSyCajxAScOpEbQShZ-8JNcqmrf6gFz8ncnE", authDomain: "mall-bet-madmoom.firebaseapp.com", projectId: "mall-bet-madmoom", appId: "1:922712350704:web:9751ad2419f915a9a74735" };
@@ -211,14 +224,67 @@
             const img = document.getElementById('archive-img-name').value;
             if(img) { await db.collection("archive_photos").add({ url: img, date: new Date() }); alert("تم للأرشيف"); loadArchive(); }
         }
-        async function loadArchive() {
-            const snap = await db.collection("archive_photos").orderBy("date", "desc").get();
-            document.getElementById('archive-grid').innerHTML = snap.docs.map(doc => `<img src="gallery/${doc.data().url}" class="w-full rounded-lg mb-2 border border-gold shadow-sm">`).join('');
-        }
-        function loadQuotes() {
-            const h = ["النَّاسُ صِنْفَانِ: إِمَّا أَخٌ لَكَ فِي الدِّينِ، أَوْ نَظِيرٌ لَكَ فِي الْخَلْقِ.","قِيمَةُ كُلِّ امْرِئٍ مَا يُحْسِنُهُ.","الْعِلْمُ خَيْرٌ مِنَ الْمَالِ.","لا غِنَى كَالْعَقْلِ، وَلا فَقْرَ كَالْجَهْلِ."];
-            document.getElementById('quotes-list').innerHTML = h.map(q => `<div class="p-4 bg-white border-r-4 border-gold shadow-sm font-['Amiri']">${q}</div>`).join('');
-        }
+       async function loadArchive() {
+    const snap = await db.collection("archive_photos").orderBy("date", "desc").get();
+    document.getElementById('archive-grid').innerHTML = snap.docs.map(doc => 
+        `<img src="gallery/${doc.data().url}" onerror="this.style.display='none'" class="w-full rounded-lg mb-2 border border-gold shadow-sm">`
+    ).join('');
+}
+        let currentQuoteIdx = 0;
+const wisdoms = [
+    "النَّاسُ صِنْفَانِ: إِمَّا أَخٌ لَكَ فِي الدِّينِ، أَوْ نَظِيرٌ لَكَ فِي الْخَلْقِ.",
+    "قِيمَةُ كُلِّ امْرِئٍ مَا يُحْسِنُهُ.",
+    "مَنْ كَسَاهُ الْحَيَاءُ ثَوْبَهُ لَمْ يَرَ النَّاسُ عَيْبَهُ.",
+    "أَعْجَزُ النَّاسِ مَنْ عَجَزَ عَنِ اكْتِسَابِ الإِخْوَانِ.",
+    "لا غِنَى كَالْعَقْلِ، وَلا فَقْرَ كَالْجَهْلِ، وَلا مِيرَاثَ كَالأَدَبِ.",
+    "الْعِلْمُ خَيْرٌ مِنَ الْمَالِ، الْعِلْمُ يَحْرُسُكَ وَأَنْتَ تَحْرُسُ الْمَالَ.",
+    "خَالِطُوا النَّاسَ مُخَالَطَةً إِنْ مُتُّمْ مَعَهَا بَكَوْا عَلَيْكُمْ، وَإِنْ عِشْتُمْ حَنُّوا إِلَيْكُمْ.",
+    "الصَّبْرُ مِنَ الإِيمَانِ كَالرَّأْسِ مِنَ الْجَسَدِ.",
+    "فَقْدُ الأَحِبَّةِ غُرْبَةٌ.",
+    "يَوْمُ الْمَظْلُومِ عَلَى الظَّالِمِ أَشَدُّ مِنْ يَوْمِ الظَّالِمِ عَلَى الْمَظْلُومِ.",
+    "الْبُخْلُ عَارٌ، وَالْجُبْنُ مَنْقَصَةٌ.",
+    "اللِّسَانُ سَبُعٌ، إِنْ خُلِّيَ عَنْهُ عَقَرَ.",
+    "أَزْرَى بِنَفْسِهِ مَنِ اسْتَشْعَرَ الطَّمَعَ.",
+    "صَدْرُ الْعَاقِلِ صُنْدُوقُ سِرِّهِ.",
+    "مَنْ جَرى في عِنانِ أَمَلِهِ عَثَرَ بِأَجَلِهِ.",
+    "إِذَا أَقْبَلَتِ الدُّنْيَا عَلَى أَحَدٍ أَعَارَتْهُ مَحَاسِنَ غَيْرِهِ، وَإِذَا أَدْبَرَتْ عَنْهُ سَلَبَتْهُ مَحَاسِنَ نَفْسِهِ.",
+    "أَفْضَلُ الزُّهْدِ إِخْفَاءُ الزُّهْدِ.",
+    "عِظَمُ الْخَالِقِ عِنْدَكَ يُصَغِّرُ الْمَخْلُوقَ فِي عَيْنِكَ.",
+    "مَنْ كَثُرَ كَلامُهُ كَثُرَ خَطَؤُهُ.",
+    "الْحِلْمُ عِشِيرَةٌ.",
+    "الْغِنَى فِي الْغُرْبَةِ وَطَنٌ، وَالْفَقْرُ فِي الْوَطَنِ غُرْبَةٌ.",
+    "الْقَنَاعَةُ مَالٌ لا يَنْفَدُ.",
+    "الْمَالُ مَادَّةُ الشَّهَوَاتِ.",
+    "مَنْ حَذَّرَكَ كَمَنْ بَشَّرَكَ.",
+    "كُنْ فِي الْفِتْنَةِ كَابْنِ اللَّبُونِ، لا ظَهْرٌ فَيُرْكَبَ، وَلا ضَرْعٌ فَيُحْلَبَ."
+];
+
+function loadQuotes() {
+    displayQuote();
+}
+
+function displayQuote() {
+    const textEl = document.getElementById('quote-text');
+    const countEl = document.getElementById('quote-counter');
+    
+    // تأثير اختفاء وظهور بسيط
+    textEl.style.opacity = 0;
+    setTimeout(() => {
+        textEl.innerText = wisdoms[currentQuoteIdx];
+        textEl.style.opacity = 1;
+        countEl.innerText = `${currentQuoteIdx + 1} / ${wisdoms.length}`;
+    }, 200);
+}
+
+function nextQuote() {
+    currentQuoteIdx = (currentQuoteIdx + 1) % wisdoms.length;
+    displayQuote();
+}
+
+function prevQuote() {
+    currentQuoteIdx = (currentQuoteIdx - 1 + wisdoms.length) % wisdoms.length;
+    displayQuote();
+}
         function loadGal() { 
             const g = document.getElementById('gal-grid'); g.innerHTML = "";
             for(let i=1; i<=15; i++) g.innerHTML += `<img src="gallery/${i}.jpg" onerror="this.style.display='none'" class="w-full rounded-lg mb-2 border border-gold shadow-sm">`; 
@@ -226,4 +292,5 @@
     </script>
 </body>
 </html>
+
 
